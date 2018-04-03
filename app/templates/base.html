@@ -1,0 +1,24 @@
+<html>
+    <head>
+      {% if title %}
+      <title>{{ title }} - WebZoo</title>
+      {% else %}
+      <title>Welcome to WebZoo</title>
+      {% endif %}
+    </head>
+    <body>
+        <div>WebZoo: <a href="/index">Home</a></div>
+        <div><p><a href="/new_staff">Add new staff</a> <a href="/show_staff">Show staff</a></p></div>
+        <hr>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </body>
+</html>

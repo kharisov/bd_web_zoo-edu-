@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% if staff %}
+        <ul>
+            {% for s in staff %}
+            <li>{{ s }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.gender.label}}<br>
+            {{ form.gender(size=3) }}
+            {% for error in form.gender.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.age.label }}<br>
+            {{ form.age(size=32) }}
+            {% for error in form.age.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.salary.label }}<br>
+            {{ form.salary(size=32) }}
+            {% for error in form.salary.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.employment_date.label }}<br>
+            {{ form.employment_date(size=32) }}
+            {% for error in form.employment_date.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}
