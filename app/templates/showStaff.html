@@ -1,12 +1,46 @@
 {% extends "base.html" %}
 
 {% block content %}
+    <h1>Show staff:</h1>
     {% if staff %}
-        <ul>
+        <table>
+            <tr>
+                <th>
+                    First name:
+                </th>
+                <th>
+                    Second name:
+                </th>
+                <th>
+                    Gender:
+                </th>
+                <th>
+                    Age:
+                </th>
+                <th>
+                    Salary:
+                </th>
+            </tr>
             {% for s in staff %}
-            <li>{{ s }}</li>
+            <tr>
+                <td>
+                    {{ s.first_name }}
+                </td>
+                <td>
+                    {{ s.second_name }}
+                </td>
+                <td>
+                    {{ s.gender }}
+                </td>
+                <td>
+                    {{ s.age }}
+                </td>
+                <td>
+                    {{ s.salary }}
+                </td>
+            </tr>
             {% endfor %}
-        </ul>
+        </table>
     {% endif %}
     <form action="" method="post">
         {{ form.hidden_tag() }}

@@ -7,8 +7,22 @@
       {% endif %}
     </head>
     <body>
-        <div>WebZoo: <a href="/index">Home</a></div>
-        <div><p><a href="/new_staff">Add new staff</a> <a href="/show_staff">Show staff</a></p></div>
+        <div>
+            WebZoo: <a href="{{ url_for('index') }}">Home</a>
+            {% if current_user.is_anonymous %}
+            <a href="{{ url_for('login') }}">Login</a>
+            {% else %}
+            <a href="{{ url_for('logout') }}">Logout</a>
+            {% endif %}
+        </div>
+        {% if not current_user.is_anonymous %}
+        <div>
+            {% if current_user.urole == 'admin' %}
+            <a href="{{ url_for('new_staff') }}">Add new staff</a>
+            {% endif %}
+            <a href="{{ url_for('show_staff') }}">Show staff</a>
+        </div>
+        {% endif %}
         <hr>
         {% with messages = get_flashed_messages() %}
         {% if messages %}
