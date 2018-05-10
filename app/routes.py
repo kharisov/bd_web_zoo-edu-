@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from flask import render_template, redirect, flash, url_for, request
 from app import app, db
-from app.forms import NewStaffForm, SelectStaffForm, LoginForm
-from app.models import Staff, User
+from app.forms import NewStaffForm, SelectStaffForm, LoginForm, CategoryForm
+from app.models import Staff, User, Category
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 
@@ -26,7 +26,7 @@ def new_staff():
         db.session.add(staff)
         db.session.commit()
         flash('New user added')
-        return redirect('/index')
+        return redirect(url_for('new_staff'))
     return render_template('newStaff.html', title='New staff', form=form)
 
 
@@ -50,6 +50,23 @@ def show_staff():
             query = query.filter(Staff.employment_date >= date)
         return render_template('showStaff.html', title='Show staff', staff=query.all(), form=form)
     return render_template('showStaff.html', title='Show staff', staff=None, form=form)
+
+
+@app.route('/categories', methods=['GET', 'POST'])
+@login_required
+def categories():
+    if current_user.urole != 'admin':
+        flash('You have no rights')
+        return redirect('/index')
+    form = CategoryForm()
+    if form.validate_on_submit():
+        category = Category(category_name=form.name.data)
+        db.session.add(category)
+        db.session.commit()
+        flash('New category added')
+        return redirect(url_for('categories'))
+    categories = Category.query.all()
+    return render_template('categories.html', categories=categories, title='Categories', form=form)
 
 
 @app.route('/login', methods=['GET', 'POST'])

@@ -38,6 +38,12 @@
                 <td>
                     {{ s.salary }}
                 </td>
+                <td>
+                    <select style="width:500px" class="js-example-basic-multiple categories-drop-down" name="states[]" multiple="multiple">
+                        <option value="AL">Alabama</option>
+                        <option value="WY">Wyoming</option>
+                    </select>
+                </td>
             </tr>
             {% endfor %}
         </table>

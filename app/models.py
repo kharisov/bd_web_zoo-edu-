@@ -39,24 +39,24 @@ class Staff(db.Model):
 
 class StaffCategoryLink(db.Model):
     staff_id = db.Column(db.Integer, db.ForeignKey('staff.staff_id'), primary_key=True)
-    category_id = db.Column(db.Integer, db.ForeignKey('categories.category_id'), primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.category_id'), primary_key=True)
 
     def __repr__(self):
         return '<StaffCategoryLink {} {}>'.format(self.staff_id, self.category_id)
 
 
-class Categories(db.Model):
+class Category(db.Model):
     category_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     category_name = db.Column(db.String(64))
     staff_link = db.relationship('StaffCategoryLink', backref='category', lazy='dynamic')
     attribute_link = db.relationship('CategoryAttributeLink', backref='attribute', lazy='dynamic')
 
     def __repr__(self):
-        return '<Categories {} {}>'.format(self.category_id, self.category_name)
+        return '<Category {} {}>'.format(self.category_id, self.category_name)
 
 
 class CategoryAttributeLink(db.Model):
-    category_id = db.Column(db.Integer, db.ForeignKey('categories.category_id'), primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.category_id'), primary_key=True)
     attribute_id = db.Column(db.Integer, db.ForeignKey('attributes.attribute_id'), primary_key=True)
 
     def __repr__(self):
@@ -75,7 +75,7 @@ class Attributes(db.Model):
 
 class AttributeValues(db.Model):
     staff_id = db.Column(db.Integer, db.ForeignKey('staff.staff_id'), primary_key=True)
-    category_id = db.Column(db.Integer, db.ForeignKey('categories.category_id'), primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.category_id'), primary_key=True)
     attribute_id = db.Column(db.Integer, db.ForeignKey('attributes.attribute_id'), primary_key=True)
     value_integer = db.Column(db.Integer)
     value_string = db.Column(db.String(64))
