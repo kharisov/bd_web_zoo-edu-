@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from flask import render_template, redirect, flash, url_for, request
 from app import app, db
-from app.forms import NewStaffForm, SelectStaffForm, LoginForm, CategoryForm
-from app.models import Staff, User, Category
+from app.forms import NewStaffForm, SelectStaffForm, LoginForm, CategoryForm, CategoryChooseForm
+from app.models import Staff, User, Category, StaffCategoryLink
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
+
 
 @app.route('/')
 @app.route('/index')
@@ -34,22 +35,43 @@ def new_staff():
 @login_required
 def show_staff():
     form = SelectStaffForm()
+    query = Staff.query
     if form.validate_on_submit():
-        query = Staff.query
         gender_data = form.gender.data
-        if gender_data != "None" and gender_data is not None:
+        if gender_data is not None:
             query = query.filter(Staff.gender == gender_data)
         age = form.age.data
-        if age != "None" and age is not None:
+        if age is not None:
             query = query.filter(Staff.age >= age)
         salary = form.salary.data
-        if salary != "None" and salary is not None:
+        if salary is not None:
             query = query.filter(Staff.salary >= salary)
         date = form.employment_date.data
-        if date != "None" and date is not None:
+        if date is not None:
             query = query.filter(Staff.employment_date >= date)
-        return render_template('showStaff.html', title='Show staff', staff=query.all(), form=form)
-    return render_template('showStaff.html', title='Show staff', staff=None, form=form)
+    staff = query.all()
+    categories = Category.query.all()
+    category_choose_forms = {}
+    for s in staff:
+        selected_categories = StaffCategoryLink.query.filter(StaffCategoryLink.staff_id == s.staff_id).all()
+        choose_form = CategoryChooseForm(prefix=str(s.staff_id))
+        choose_form.category_name.choices = [(c.category_id, c.category_name) for c in categories]
+        choose_form.category_name.process_data(c.category_id for c in selected_categories)
+        category_choose_forms[s.staff_id] = choose_form
+    return render_template('showStaff.html', title='Show staff', staff=staff, form=form,
+                           category_choose_forms=category_choose_forms)
+
+
+@app.route('/update_staff_categories', methods=['POST'])
+@login_required
+def update_staff_categories():
+    new_categories = request.form.getlist('categories[]')
+    StaffCategoryLink.query.filter(StaffCategoryLink.staff_id == request.form['staff_id']).delete()
+    for c in new_categories:
+        link = StaffCategoryLink(staff_id=request.form['staff_id'], category_id=c)
+        db.session.add(link)
+    db.session.commit()
+    return 'Ok'
 
 
 @app.route('/categories', methods=['GET', 'POST'])
