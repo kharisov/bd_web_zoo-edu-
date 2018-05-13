@@ -16,7 +16,8 @@ class NewStaffForm(FlaskForm):
 
 
 class SelectStaffForm(FlaskForm):
-    gender = SelectField('Gender', choices=[('male', 'male'), ('female', 'female'), ('other', 'other')], validators=[Optional()])
+    gender = SelectField('Gender', choices=[('None', 'None'), ('male', 'male'), ('female', 'female'), ('other', 'other')],
+                         default=('None', 'None'), validators=[Optional()])
     age = IntegerField('Age', [validators.NumberRange(min=0, max=100), Optional()])
     salary = IntegerField('Salary', validators=[Optional()])
     employment_date = DateField('In zoo longer than date', validators=[Optional()])
@@ -37,4 +38,22 @@ class CategoryForm(FlaskForm):
 
 class CategoryChooseForm(FlaskForm):
     category_name = SelectMultipleField('Category')
-    submit_categories = SubmitField('Submit Categories')
+
+
+class AnimalTypeForm(FlaskForm):
+    name = StringField('Animal Type Name', validators=[DataRequired()])
+    zone = SelectField('Zone', coerce=int, validators=[DataRequired()])
+    feeding = SelectField('Feeding Type', coerce=int, validators=[DataRequired()])
+    submit = SubmitField('Add Animal Type')
+
+
+class NewAnimalForm(FlaskForm):
+    name = StringField('Animal Name', validators=[DataRequired()])
+    type = SelectField('Animal Type', coerce=int, validators=[DataRequired()])
+    age = IntegerField('Age', [validators.NumberRange(min=0, max=200)])
+    height = IntegerField('Height(meters)')
+    weight = IntegerField('Weight(kg)')
+    gender = SelectField('Gender', choices=[('male', 'male'), ('female', 'female')], validators=[DataRequired()])
+    arrival_date = DateField('Arrival Date', validators=[DataRequired()])
+    arrival_reason = SelectField('Arrival Reason', coerce=int, validators=[DataRequired()])
+    submit = SubmitField('Add new staff')

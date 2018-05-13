@@ -5,11 +5,12 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
         <script>
             $(document).ready(function() {
-                $('.js-example-basic-multiple').each(function() {
-                    $(this).select2({
-                        placeholder: "Select categories"
-                    });
-                });
+                $('.js-example-basic-multiple').select2();
+            });
+        </script>
+        <script>
+            $(document).ready(function() {
+                $('.js-example-basic-single').select2();
             });
         </script>
         <script>
@@ -42,10 +43,15 @@
         {% if not current_user.is_anonymous %}
         <div>
             {% if current_user.urole == 'admin' %}
-            <a href="{{ url_for('new_staff') }}">Add new staff</a>
+            <a href="{{ url_for('new_staff') }}">New Staff</a>
             {% endif %}
-            <a href="{{ url_for('show_staff') }}">Show staff</a>
+            <a href="{{ url_for('show_staff') }}">Show Staff</a>
             <a href="{{ url_for('categories') }}">Categories</a>
+            {% if current_user.urole == 'admin' %}
+            <a href="{{ url_for('new_animal') }}">New Animal</a>
+            {% endif %}
+            <a href="{{ url_for('show_animals') }}">Show Animals</a>
+            <a href="{{ url_for('animal_types') }}">Animal Types</a>
         </div>
         {% endif %}
         <hr>

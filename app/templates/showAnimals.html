@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Show Animals:</h1>
+    {% if animals %}
+        <table>
+            <tr>
+                <th>Animal name</th>
+            </tr>
+            {% for a in animals %}
+            <tr>
+                <td> {{ a.animal_name }} </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+{% endblock %}

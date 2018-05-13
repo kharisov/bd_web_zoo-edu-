@@ -61,7 +61,7 @@
         {{ form.hidden_tag() }}
         <p>
             {{ form.gender.label}}<br>
-            {{ form.gender(size=3) }}
+            {{ form.gender(class_="js-example-basic-single", style = "width : 100px") }}
             {% for error in form.gender.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}

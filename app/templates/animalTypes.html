@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Animal Types:</h1>
+    {% if types %}
+        <table>
+            <tr>
+                <th>Type name:</th>
+                <th>Zone name:</th>
+                <th>Feeding Type name:</th>
+            </tr>
+            {% for t in types %}
+            <tr>
+                <td> {{ t[0] }} </td>
+                <td> {{ t[1] }} </td>
+                <td> {{ t[2] }} </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+    {% if current_user.urole == 'admin' %}
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.name.label }}<br>
+            {{ form.name(size=32) }}
+            {% for error in form.name.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.zone.label}}<br>
+            {{ form.zone(class_="js-example-basic-single", style = "width : 100px") }}
+            {% for error in form.zone.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.feeding.label}}<br>
+            {{ form.feeding(class_="js-example-basic-single", style = "width : 100px") }}
+            {% for error in form.feeding.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+    {% endif %}
+{% endblock %}

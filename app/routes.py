@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from flask import render_template, redirect, flash, url_for, request
 from app import app, db
-from app.forms import NewStaffForm, SelectStaffForm, LoginForm, CategoryForm, CategoryChooseForm
-from app.models import Staff, User, Category, StaffCategoryLink
+from app.forms import *
+from app.models import *
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 
@@ -38,7 +38,7 @@ def show_staff():
     query = Staff.query
     if form.validate_on_submit():
         gender_data = form.gender.data
-        if gender_data is not None:
+        if gender_data is not None and gender_data != 'None':
             query = query.filter(Staff.gender == gender_data)
         age = form.age.data
         if age is not None:
@@ -77,9 +77,6 @@ def update_staff_categories():
 @app.route('/categories', methods=['GET', 'POST'])
 @login_required
 def categories():
-    if current_user.urole != 'admin':
-        flash('You have no rights')
-        return redirect('/index')
     form = CategoryForm()
     if form.validate_on_submit():
         category = Category(category_name=form.name.data)
@@ -89,6 +86,55 @@ def categories():
         return redirect(url_for('categories'))
     categories = Category.query.all()
     return render_template('categories.html', categories=categories, title='Categories', form=form)
+
+
+@app.route('/animal_types', methods=['GET', 'POST'])
+@login_required
+def animal_types():
+    form = AnimalTypeForm()
+    form.zone.choices = [(z.zone_id, z.zone_name) for z in ClimatZones.query.all()]
+    form.feeding.choices = [(f.type_id, f.feeding_type_name) for f in FeedingTypes.query.all()]
+    if form.validate_on_submit():
+        atype = AnimalTypes(type_name=form.name.data, zone_id=form.zone.data, feeding_type=form.feeding.data)
+        db.session.add(atype)
+        db.session.commit()
+        flash('New animal type added')
+        return redirect(url_for('animal_types'))
+    types = AnimalTypes.query.all()
+    types_dict = []
+    for t in types:
+        types_dict.append((t.type_name, t.zone.zone_name, t.ftype.feeding_type_name))
+    return render_template('animalTypes.html', types=types_dict, title='Animal Types', form=form)
+
+
+@app.route('/new_animal', methods=['GET', 'POST'])
+@login_required
+def new_animal():
+    if current_user.urole != 'admin':
+        flash('You have no rights')
+        return redirect('/index')
+    form = NewAnimalForm()
+    form.type.choices = [(t.type_id, t.type_name) for t in AnimalTypes.query.all()]
+    form.arrival_reason.choices = [(r.reason_id, r.reason_name) for r in ArrivalReasons.query.all()]
+    if form.validate_on_submit():
+        med_card = MedicalCards(age=form.age.data, height=form.height.data,
+                                weight=form.weight.data, gender=form.gender.data)
+        trans_card = TransferCards(arrival_date=form.arrival_date.data, arrival_reason=form.arrival_reason.data)
+        animal = Animals(animal_name=form.name.data, animal_type=form.type.data, medical_card=med_card.card_id,
+                         transfer_card=trans_card.card_id)
+        db.session.add(animal)
+        db.session.commit()
+        flash('New animal added')
+        return redirect(url_for('new_animal'))
+    return render_template('newAnimal.html', title='New Animal', form=form)
+
+
+@app.route('/show_animals', methods=['GET', 'POST'])
+@login_required
+def show_animals():
+    query = Animals.query
+    animals = query.all()
+    return render_template('showAnimals.html', title='Show animals', animals=animals)
 
 
 @app.route('/login', methods=['GET', 'POST'])
