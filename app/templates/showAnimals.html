@@ -6,10 +6,28 @@
         <table>
             <tr>
                 <th>Animal name</th>
+                <th>Animal type</th>
+                <th>Responsible staff</th>
             </tr>
             {% for a in animals %}
             <tr>
                 <td> {{ a.animal_name }} </td>
+                <td> {{ a.type.type_name }} </td>
+                <td>
+                    <form action="" method="post">
+                    {{ choose_forms[a.animal_id].hidden_tag() }}
+                        <p>
+                            {{ choose_forms[a.animal_id].staff_name(size=3, style="width:200px",
+                                class_="js-example-basic-multiple") }}
+                            {% for error in choose_forms[a.animal_id].staff_name.errors %}
+                                <span style="color: red;">[{{ error }}]</span>
+                            {% endfor %}
+                            <button type="button" onclick="">
+                                Submit responsible staff
+                            </button>
+                        </p>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </table>

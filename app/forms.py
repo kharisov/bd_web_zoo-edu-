@@ -21,6 +21,7 @@ class SelectStaffForm(FlaskForm):
     age = IntegerField('Age', [validators.NumberRange(min=0, max=100), Optional()])
     salary = IntegerField('Salary', validators=[Optional()])
     employment_date = DateField('In zoo longer than date', validators=[Optional()])
+    categories = SelectMultipleField('Categories', coerce=int, validators=[Optional()])
     submit = SubmitField('Show filtered staff')
 
 
@@ -56,4 +57,8 @@ class NewAnimalForm(FlaskForm):
     gender = SelectField('Gender', choices=[('male', 'male'), ('female', 'female')], validators=[DataRequired()])
     arrival_date = DateField('Arrival Date', validators=[DataRequired()])
     arrival_reason = SelectField('Arrival Reason', coerce=int, validators=[DataRequired()])
-    submit = SubmitField('Add new staff')
+    submit = SubmitField('Add new animal')
+
+
+class ResponsibleStaffForm(FlaskForm):
+    staff_name = SelectMultipleField('Staff')

@@ -31,6 +31,7 @@ class Staff(db.Model):
     employment_date = db.Column(db.Date)
     dismissal_date = db.Column(db.Date)
     category_link = db.relationship('StaffCategoryLink', backref='staff', lazy='dynamic')
+    staff_link = db.relationship('StaffAnimalLink', backref='staff', lazy='dynamic')
 
 
 class StaffCategoryLink(db.Model):
@@ -65,6 +66,11 @@ class AttributeValues(db.Model):
     value_string = db.Column(db.String(64))
 
 
+class StaffAnimalLink(db.Model):
+    staff_id = db.Column(db.Integer, db.ForeignKey('staff.staff_id'), primary_key=True)
+    animal_id = db.Column(db.Integer, db.ForeignKey('animals.animal_id'), primary_key=True)
+
+
 class Animals(db.Model):
     animal_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     animal_name = db.Column(db.String(64))
@@ -72,6 +78,7 @@ class Animals(db.Model):
     medical_card = db.Column(db.Integer, db.ForeignKey('medical_cards.card_id'))
     transfer_card = db.Column(db.Integer, db.ForeignKey('transfer_cards.card_id'))
     menu_id = db.Column(db.Integer, db.ForeignKey('menu.menu_id'))
+    staff_link = db.relationship('StaffAnimalLink', backref='animal', lazy='dynamic')
 
 
 class AnimalTypes(db.Model):

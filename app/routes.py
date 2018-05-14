@@ -35,6 +35,7 @@ def new_staff():
 @login_required
 def show_staff():
     form = SelectStaffForm()
+    form.categories.choices = [(c.category_id, c.category_name) for c in Category.query.all()]
     query = Staff.query
     if form.validate_on_submit():
         gender_data = form.gender.data
@@ -49,6 +50,9 @@ def show_staff():
         date = form.employment_date.data
         if date is not None:
             query = query.filter(Staff.employment_date >= date)
+        categories = form.categories.data
+        if categories is not None and categories:
+            query = query.join(StaffCategoryLink).filter(StaffCategoryLink.category_id.in_(categories))
     staff = query.all()
     categories = Category.query.all()
     category_choose_forms = {}
@@ -132,9 +136,19 @@ def new_animal():
 @app.route('/show_animals', methods=['GET', 'POST'])
 @login_required
 def show_animals():
-    query = Animals.query
-    animals = query.all()
-    return render_template('showAnimals.html', title='Show animals', animals=animals)
+    animals = Animals.query.join(AnimalTypes).all()
+    staff = StaffCategoryLink.query.join(Staff).join(Category).all()
+    staff_choose_forms = {}
+    allowed_categories = {'Vet', 'Cleaner', 'Trainer'}
+    for a in animals:
+        selected_staff = StaffAnimalLink.query.filter(StaffAnimalLink.staff_id == a.animal_id).all()
+        choose_form = ResponsibleStaffForm(prefix=str(a.animal_id))
+        choose_form.staff_name.choices = [(s.staff_id,
+                                           s.staff.first_name + ' (' + s.category.category_name + ')')
+                                          for s in staff if s.category.category_name in allowed_categories]
+        choose_form.staff_name.process_data(s.staff_id for s in selected_staff)
+        staff_choose_forms[a.animal_id] = choose_form
+    return render_template('showAnimals.html', title='Show animals', animals=animals, choose_forms=staff_choose_forms)
 
 
 @app.route('/login', methods=['GET', 'POST'])
