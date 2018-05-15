@@ -25,6 +25,30 @@
                 });
             }
         </script>
+        <script>
+            function update_responsible_staff(animalId, formId) {
+                s = $(formId).val()
+                $.post('/update_responsible_staff', {
+                    animal_id : animalId,
+                    staff : s
+                }).done(function(response) {
+                }).fail(function() {
+                    alert("error");
+                });
+            }
+        </script>
+        <script>
+            function update_type_responsible_staff(typeId, formId) {
+                s = $(formId).val()
+                $.post('/update_type_responsible_staff', {
+                    type_id : typeId,
+                    staff : s
+                }).done(function(response) {
+                }).fail(function() {
+                    alert("error");
+                });
+            }
+        </script>
         {% if title %}
         <title>{{ title }} - WebZoo</title>
         {% else %}

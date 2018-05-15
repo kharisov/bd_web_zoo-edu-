@@ -13,21 +13,24 @@
             <tr>
                 <td> {{ a.animal_name }} </td>
                 <td> {{ a.type.type_name }} </td>
+                {% if current_user.urole == 'admin' %}
                 <td>
                     <form action="" method="post">
                     {{ choose_forms[a.animal_id].hidden_tag() }}
                         <p>
-                            {{ choose_forms[a.animal_id].staff_name(size=3, style="width:200px",
+                            {{ choose_forms[a.animal_id].responsible_staff(size=3, style="width:200px",
                                 class_="js-example-basic-multiple") }}
-                            {% for error in choose_forms[a.animal_id].staff_name.errors %}
+                            {% for error in choose_forms[a.animal_id].responsible_staff.errors %}
                                 <span style="color: red;">[{{ error }}]</span>
                             {% endfor %}
-                            <button type="button" onclick="">
+                            <button type="button" onclick="update_responsible_staff({{a.animal_id}},
+                             '#{{a.animal_id}}-responsible_staff')">
                                 Submit responsible staff
                             </button>
                         </p>
                     </form>
                 </td>
+                {% endif %}
             </tr>
             {% endfor %}
         </table>

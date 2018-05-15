@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Archive:</h1>
+    {% if result %}
+        <table>
+            {% for r in result %}
+            <tr>
+                <td>{{ r.staff.first_name + ' ' + r.staff.second_name }}</td>
+                <td>{{ r.category.category_name }}</td>
+                <td>{{ r.type.type_name }}</td>
+                <td>{{ r.start }}</td>
+                <td>{{ r.end }}</td>
+                {% endfor %}
+            </tr>
+        </table>
+    {% endif %}
+{% endblock %}

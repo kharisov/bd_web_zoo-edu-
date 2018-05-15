@@ -61,4 +61,4 @@ class NewAnimalForm(FlaskForm):
 
 
 class ResponsibleStaffForm(FlaskForm):
-    staff_name = SelectMultipleField('Staff')
+    responsible_staff = SelectMultipleField('Responsible Staff')

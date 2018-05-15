@@ -38,6 +38,7 @@
                 <td>
                     {{ s.salary }}
                 </td>
+                {% if current_user.urole == 'admin' %}
                 <td>
                     <form action="" method="post">
                     {{ category_choose_forms[s.staff_id].hidden_tag() }}
@@ -53,6 +54,7 @@
                         </p>
                     </form>
                 </td>
+                {% endif %}
             </tr>
             {% endfor %}
         </table>

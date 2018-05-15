@@ -2,6 +2,7 @@
 
 {% block content %}
     <h1>Animal Types:</h1>
+    <a href="{{ url_for('show_types_archive') }}">Responsibility archives</a>
     {% if types %}
         <table>
             <tr>
@@ -14,6 +15,24 @@
                 <td> {{ t[0] }} </td>
                 <td> {{ t[1] }} </td>
                 <td> {{ t[2] }} </td>
+                {% if current_user.urole == 'admin' %}
+                <td>
+                    <form action="" method="post">
+                    {{ choose_forms[t[3]].hidden_tag() }}
+                        <p>
+                            {{ choose_forms[t[3]].responsible_staff(size=3, style="width:200px",
+                                class_="js-example-basic-multiple") }}
+                            {% for error in choose_forms[t[3]].responsible_staff.errors %}
+                                <span style="color: red;">[{{ error }}]</span>
+                            {% endfor %}
+                            <button type="button" onclick="update_type_responsible_staff({{t[3]}},
+                             '#{{t[3]}}-responsible_staff')">
+                                Submit responsible staff
+                            </button>
+                        </p>
+                    </form>
+                </td>
+                {% endif %}
             </tr>
             {% endfor %}
         </table>

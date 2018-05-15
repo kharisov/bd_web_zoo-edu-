@@ -1,7 +1,7 @@
 from app import db, login
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from sqlalchemy import event
 
 @login.user_loader
 def load_user(id):
@@ -31,10 +31,10 @@ class Staff(db.Model):
     employment_date = db.Column(db.Date)
     dismissal_date = db.Column(db.Date)
     category_link = db.relationship('StaffCategoryLink', backref='staff', lazy='dynamic')
-    staff_link = db.relationship('StaffAnimalLink', backref='staff', lazy='dynamic')
 
 
 class StaffCategoryLink(db.Model):
+    __tablename__ = 'staff_category_link'
     staff_id = db.Column(db.Integer, db.ForeignKey('staff.staff_id'), primary_key=True)
     category_id = db.Column(db.Integer, db.ForeignKey('category.category_id'), primary_key=True)
 
@@ -67,8 +67,20 @@ class AttributeValues(db.Model):
 
 
 class StaffAnimalLink(db.Model):
-    staff_id = db.Column(db.Integer, db.ForeignKey('staff.staff_id'), primary_key=True)
+    __tablename__ = 'staff_animal_link'
+    staff_id = db.Column(db.Integer, db.ForeignKey('staff_category_link.staff_id'), primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('staff_category_link.category_id'), primary_key=True)
     animal_id = db.Column(db.Integer, db.ForeignKey('animals.animal_id'), primary_key=True)
+    start = db.Column(db.DateTime)
+
+
+class StaffAnimalLinkArchive(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    staff_id = db.Column(db.Integer)
+    category_id = db.Column(db.Integer)
+    animal_id = db.Column(db.Integer)
+    start = db.Column(db.DateTime)
+    end = db.Column(db.DateTime)
 
 
 class Animals(db.Model):
@@ -88,6 +100,32 @@ class AnimalTypes(db.Model):
     zone_id = db.Column(db.Integer, db.ForeignKey('climat_zones.zone_id'))
     feeding_type = db.Column(db.Integer, db.ForeignKey('feeding_types.type_id'))
     animal_link = db.relationship('Animals', backref='type', lazy='dynamic')
+
+
+class StaffAnimalTypeLink(db.Model):
+    __tablename__ = 'staff_animal_type_link'
+    staff_id = db.Column(db.Integer, db.ForeignKey('staff_category_link.staff_id'), primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('staff_category_link.category_id'), primary_key=True)
+    type_id = db.Column(db.Integer, db.ForeignKey('animal_types.type_id'), primary_key=True)
+    start = db.Column(db.DateTime)
+
+    staff = db.relationship(StaffCategoryLink, foreign_keys=[staff_id])
+    category = db.relationship(StaffCategoryLink, foreign_keys=[category_id])
+    type = db.relationship(AnimalTypes, foreign_keys=[type_id])
+
+
+class StaffAnimalTypeLinkArchive(db.Model):
+    __tablename__ = 'staff_animal_type_link_archive'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    staff_id = db.Column(db.Integer, db.ForeignKey('staff.staff_id'))
+    category_id = db.Column(db.Integer, db.ForeignKey('category.category_id'))
+    type_id = db.Column(db.Integer, db.ForeignKey('animal_types.type_id'))
+    start = db.Column(db.DateTime)
+    end = db.Column(db.DateTime)
+
+    staff = db.relationship(Staff, foreign_keys=[staff_id])
+    category = db.relationship(Category, foreign_keys=[category_id])
+    type = db.relationship(AnimalTypes, foreign_keys=[type_id])
 
 
 class ClimatZones(db.Model):

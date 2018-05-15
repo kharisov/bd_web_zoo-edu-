@@ -5,6 +5,8 @@ from app.forms import *
 from app.models import *
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
+import datetime
+from sqlalchemy import or_
 
 
 @app.route('/')
@@ -78,6 +80,50 @@ def update_staff_categories():
     return 'Ok'
 
 
+@app.route('/update_responsible_staff', methods=['POST'])
+@login_required
+def update_responsible_staff():
+    new_staff = request.form.getlist('staff[]')
+    parsed = []
+    for s in new_staff:
+        split = s.split('_')
+        parsed.append((int(split[0]), int(int(split[1]))))
+    StaffAnimalLink.query.filter(StaffAnimalLink.animal_id == request.form['animal_id']). \
+        filter(or_(~StaffAnimalLink.staff_id.in_([p[0] for p in parsed]),
+                   ~StaffAnimalLink.category_id.in_([p[1] for p in parsed]))).delete(synchronize_session='fetch')
+    for p in parsed:
+        if not StaffAnimalLink.query.filter(StaffAnimalLink.animal_id == request.form['animal_id']). \
+                filter(StaffAnimalLink.staff_id == p[0]). \
+                filter(StaffAnimalLink.category_id == p[1]).first():
+            link = StaffAnimalLink(animal_id=request.form['animal_id'], staff_id=p[0],
+                                   category_id=p[1], start=datetime.datetime.now())
+            db.session.add(link)
+    db.session.commit()
+    return 'Ok'
+
+
+@app.route('/update_type_responsible_staff', methods=['POST'])
+@login_required
+def update_type_responsible_staff():
+    new_staff = request.form.getlist('staff[]')
+    parsed = []
+    for s in new_staff:
+        split = s.split('_')
+        parsed.append((int(split[0]), int(int(split[1]))))
+    StaffAnimalTypeLink.query.filter(StaffAnimalTypeLink.type_id == request.form['type_id']). \
+        filter(or_(~StaffAnimalTypeLink.staff_id.in_([p[0] for p in parsed]),
+                   ~StaffAnimalTypeLink.category_id.in_([p[1] for p in parsed]))).delete(synchronize_session='fetch')
+    for p in parsed:
+        if not StaffAnimalTypeLink.query.filter(StaffAnimalTypeLink.type_id == request.form['type_id']). \
+                filter(StaffAnimalTypeLink.staff_id == p[0]). \
+                filter(StaffAnimalTypeLink.category_id == p[1]).first():
+            link = StaffAnimalTypeLink(type_id=request.form['type_id'], staff_id=p[0],
+                                       category_id=p[1], start=datetime.datetime.now())
+            db.session.add(link)
+    db.session.commit()
+    return 'Ok'
+
+
 @app.route('/categories', methods=['GET', 'POST'])
 @login_required
 def categories():
@@ -106,9 +152,20 @@ def animal_types():
         return redirect(url_for('animal_types'))
     types = AnimalTypes.query.all()
     types_dict = []
+    staff_choose_forms = {}
+    allowed_categories = {'Vet', 'Cleaner', 'Trainer'}
+    staff = StaffCategoryLink.query.join(Staff).join(Category).all()
     for t in types:
-        types_dict.append((t.type_name, t.zone.zone_name, t.ftype.feeding_type_name))
-    return render_template('animalTypes.html', types=types_dict, title='Animal Types', form=form)
+        types_dict.append((t.type_name, t.zone.zone_name, t.ftype.feeding_type_name, t.type_id))
+        selected_staff = StaffAnimalTypeLink.query.filter(StaffAnimalTypeLink.type_id == t.type_id).all()
+        choose_form = ResponsibleStaffForm(prefix=str(t.type_id))
+        choose_form.responsible_staff.choices = [(str(s.staff_id) + '_' + str(s.category.category_id),
+                                                  s.staff.first_name + ' (' + s.category.category_name + ')')
+                                                 for s in staff if s.category.category_name in allowed_categories]
+        choose_form.responsible_staff.process_data(str(s.staff_id) + '_' + str(s.category_id) for s in selected_staff)
+        staff_choose_forms[t.type_id] = choose_form
+    return render_template('animalTypes.html', types=types_dict, title='Animal Types', form=form,
+                           choose_forms=staff_choose_forms)
 
 
 @app.route('/new_animal', methods=['GET', 'POST'])
@@ -141,12 +198,12 @@ def show_animals():
     staff_choose_forms = {}
     allowed_categories = {'Vet', 'Cleaner', 'Trainer'}
     for a in animals:
-        selected_staff = StaffAnimalLink.query.filter(StaffAnimalLink.staff_id == a.animal_id).all()
+        selected_staff = StaffAnimalLink.query.filter(StaffAnimalLink.animal_id == a.animal_id).all()
         choose_form = ResponsibleStaffForm(prefix=str(a.animal_id))
-        choose_form.staff_name.choices = [(s.staff_id,
-                                           s.staff.first_name + ' (' + s.category.category_name + ')')
-                                          for s in staff if s.category.category_name in allowed_categories]
-        choose_form.staff_name.process_data(s.staff_id for s in selected_staff)
+        choose_form.responsible_staff.choices = [(str(s.staff_id) + '_' + str(s.category.category_id),
+                                                  s.staff.first_name + ' (' + s.category.category_name + ')')
+                                                 for s in staff if s.category.category_name in allowed_categories]
+        choose_form.responsible_staff.process_data(str(s.staff_id) + '_' + str(s.category_id) for s in selected_staff)
         staff_choose_forms[a.animal_id] = choose_form
     return render_template('showAnimals.html', title='Show animals', animals=animals, choose_forms=staff_choose_forms)
 
@@ -173,3 +230,9 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+
+@app.route('/show_types_archive')
+def show_types_archive():
+    r = StaffAnimalTypeLinkArchive.query.join(Staff).join(Category).join(AnimalTypes).all()
+    return render_template('typesArchive.html', title='Archive', result=r)
