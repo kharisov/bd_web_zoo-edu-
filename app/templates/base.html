@@ -49,6 +49,16 @@
                 });
             }
         </script>
+        <script>
+            function delete_category(category_id) {
+                $.post('/delete_category', {
+                    id : category_id
+                }).done(function(response) {
+                }).fail(function() {
+                    alert("error");
+                });
+            }
+        </script>
         {% if title %}
         <title>{{ title }} - WebZoo</title>
         {% else %}

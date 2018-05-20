@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Medical Card for {{ animal.animal_name }}:</h1>
+    <p>
+        Gender: {{ animal.mcard.gender }} <br/>
+        Age: {{ animal.mcard.age }} <br/>
+        Height: {{ animal.mcard.height }} <br/>
+        Weight: {{ animal.mcard.weight }} <br/>
+    </p>
+    <form action="" method="post">
+        {{ medical_card_form.hidden_tag() }}
+        <p>
+            {{ medical_card_form.age.label }}<br>
+            {{ medical_card_form.age(size=32) }}
+            {% for error in medical_card_form.age.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ medical_card_form.height.label }}<br>
+            {{ medical_card_form.height(size=32) }}
+            {% for error in medical_card_form.height.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ medical_card_form.weight.label }}<br>
+            {{ medical_card_form.weight(size=32) }}
+            {% for error in medical_card_form.weight.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ medical_card_form.submit() }}</p>
+    </form>
+    <h2>Used Vaccines:</h2>
+    <table>
+        <tr>
+            <th>Vaccine name:</th>
+            <th>Vaccine date:</th>
+        </tr>
+        {% for v in vaccines %}
+        <tr>
+            <td>{{v.vaccine.vaccine_name}}</td>
+            <td>{{v.date}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <form action="" method="post">
+        {{ vaccine_form.hidden_tag() }}
+        <p>
+            {{ vaccine_form.vaccine.label}}<br>
+            {{ vaccine_form.vaccine(class_="js-example-basic-single", style = "width : 100px") }}
+            {% for error in vaccine_form.vaccine.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ vaccine_form.date.label }}<br>
+            {{ vaccine_form.date(size=32) }}
+            {% for error in vaccine_form.date.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ medical_card_form.submit() }}</p>
+    </form>
+    <h2>Previous Illnesses:</h2>
+    <table>
+        <tr>
+            <th>Disease name:</th>
+            <th>Illness start:</th>
+            <th>Illness end:</th>
+        </tr>
+        {% for d in diseases %}
+        <tr>
+            <td>{{d.disease.disease_name }}</td>
+            <td>{{d.stard}}</td>
+            <td>{{d.end}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <form action="" method="post">
+        {{ disease_form.hidden_tag() }}
+        <p>
+            {{ disease_form.disease.label}}<br>
+            {{ disease_form.disease(class_="js-example-basic-single", style = "width : 100px") }}
+            {% for error in disease_form.disease.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ disease_form.start.label }}<br>
+            {{ disease_form.start(size=32) }}
+            {% for error in disease_form.start.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ disease_form.end.label }}<br>
+            {{ disease_form.end(size=32) }}
+            {% for error in disease_form.end.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ medical_card_form.submit() }}</p>
+    </form>
+{% endblock %}

@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SelectField, SubmitField, PasswordField,\
     BooleanField, SelectMultipleField, validators
 from wtforms.fields.html5 import DateField
+from wtforms.ext.dateutil.fields import DateTimeField
 from wtforms.validators import DataRequired, Optional
 
 
@@ -62,3 +63,47 @@ class NewAnimalForm(FlaskForm):
 
 class ResponsibleStaffForm(FlaskForm):
     responsible_staff = SelectMultipleField('Responsible Staff')
+
+
+class TypesArchiveQueryForm(FlaskForm):
+    type = SelectField('Animal Type', coerce=int, validators=[Optional()])
+    start = DateTimeField('Start', validators=[Optional()])
+    end = DateTimeField('End', validators=[Optional()])
+    submit = SubmitField('Sort')
+
+
+class AnimalsArchiveQueryForm(FlaskForm):
+    animal = SelectField('Animal', coerce=int, validators=[Optional()])
+    start = DateTimeField('Start', validators=[Optional()])
+    end = DateTimeField('End', validators=[Optional()])
+    submit = SubmitField('Sort')
+
+
+class SelectAnimalsForm(FlaskForm):
+    types = SelectMultipleField('Animal Types', coerce=int, validators=[Optional()])
+    gender = SelectField('Gender', choices=[('None', 'None'), ('male', 'male'), ('female', 'female'), ('other', 'other')],
+                         default=('None', 'None'), validators=[Optional()])
+    age = IntegerField('Age', [validators.NumberRange(min=0, max=100), Optional()])
+    height = IntegerField('Height', validators=[Optional()])
+    weight = IntegerField('Weight', validators=[Optional()])
+    submit = SubmitField('Show filtered animals')
+
+
+class MedicalCardForm(FlaskForm):
+    age = IntegerField('Age', [validators.NumberRange(min=0, max=100), Optional()])
+    height = IntegerField('Height', validators=[Optional()])
+    weight = IntegerField('Weight', validators=[Optional()])
+    submit = SubmitField('Submit')
+
+
+class NewVaccineForm(FlaskForm):
+    vaccine = SelectField('Vaccine', coerce=int, validators=[DataRequired()])
+    date = DateField('Date', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+
+class NewDiseaseForm(FlaskForm):
+    disease = SelectField('Disease', coerce=int, validators=[DataRequired()])
+    start = DateField('Start', validators=[DataRequired()])
+    end = DateField('End', validators=[DataRequired()])
+    submit = SubmitField('Submit')

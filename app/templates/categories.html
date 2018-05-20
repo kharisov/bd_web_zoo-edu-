@@ -3,11 +3,16 @@
 {% block content %}
     <h1>Categories:</h1>
     {% if categories %}
-        <ul>
-        {% for c in categories %}
-            <li>{{ c.category_name }}</li>
-        {% endfor %}
-        </ul>
+        <table>
+            {% for c in categories %}
+            <tr>
+                <td>{{ c.category_name }}</td>
+                <td><a href="javascript:delete_category( {{c.category_id }} )">
+                    <img src="/static/images/delete.png">
+                </a></td>
+            </tr>
+            {% endfor %}
+        </table>
     {% endif %}
     {% if current_user.urole == 'admin' %}
     <form action="" method="post">

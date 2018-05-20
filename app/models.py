@@ -1,7 +1,6 @@
 from app import db, login
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import event
 
 @login.user_loader
 def load_user(id):
@@ -42,7 +41,7 @@ class StaffCategoryLink(db.Model):
 class Category(db.Model):
     category_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     category_name = db.Column(db.String(64))
-    staff_link = db.relationship('StaffCategoryLink', backref='category', lazy='dynamic')
+    staff_link = db.relationship('StaffCategoryLink', backref='category', cascade="delete", lazy='dynamic')
     attribute_link = db.relationship('CategoryAttributeLink', backref='attribute', lazy='dynamic')
 
 
@@ -66,23 +65,6 @@ class AttributeValues(db.Model):
     value_string = db.Column(db.String(64))
 
 
-class StaffAnimalLink(db.Model):
-    __tablename__ = 'staff_animal_link'
-    staff_id = db.Column(db.Integer, db.ForeignKey('staff_category_link.staff_id'), primary_key=True)
-    category_id = db.Column(db.Integer, db.ForeignKey('staff_category_link.category_id'), primary_key=True)
-    animal_id = db.Column(db.Integer, db.ForeignKey('animals.animal_id'), primary_key=True)
-    start = db.Column(db.DateTime)
-
-
-class StaffAnimalLinkArchive(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    staff_id = db.Column(db.Integer)
-    category_id = db.Column(db.Integer)
-    animal_id = db.Column(db.Integer)
-    start = db.Column(db.DateTime)
-    end = db.Column(db.DateTime)
-
-
 class Animals(db.Model):
     animal_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     animal_name = db.Column(db.String(64))
@@ -90,7 +72,31 @@ class Animals(db.Model):
     medical_card = db.Column(db.Integer, db.ForeignKey('medical_cards.card_id'))
     transfer_card = db.Column(db.Integer, db.ForeignKey('transfer_cards.card_id'))
     menu_id = db.Column(db.Integer, db.ForeignKey('menu.menu_id'))
-    staff_link = db.relationship('StaffAnimalLink', backref='animal', lazy='dynamic')
+
+
+class StaffAnimalLink(db.Model):
+    __tablename__ = 'staff_animal_link'
+    staff_id = db.Column(db.Integer, db.ForeignKey('staff_category_link.staff_id'), primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('staff_category_link.category_id'), primary_key=True)
+    animal_id = db.Column(db.Integer, db.ForeignKey('animals.animal_id'), primary_key=True)
+    start = db.Column(db.DateTime)
+
+    staff = db.relationship(StaffCategoryLink, foreign_keys=[staff_id])
+    category = db.relationship(StaffCategoryLink, foreign_keys=[category_id])
+    animal = db.relationship(Animals, foreign_keys=[animal_id])
+
+
+class StaffAnimalLinkArchive(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    staff_id = db.Column(db.Integer, db.ForeignKey('staff.staff_id'))
+    category_id = db.Column(db.Integer, db.ForeignKey('category.category_id'))
+    animal_id = db.Column(db.Integer, db.ForeignKey('animals.animal_id'))
+    start = db.Column(db.DateTime)
+    end = db.Column(db.DateTime)
+
+    staff = db.relationship(Staff, foreign_keys=[staff_id])
+    category = db.relationship(Category, foreign_keys=[category_id])
+    animal = db.relationship(Animals, foreign_keys=[animal_id])
 
 
 class AnimalTypes(db.Model):
@@ -188,3 +194,32 @@ class FoodTypes(db.Model):
     __tablename__ = 'food_types'
     type_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     type_name = db.Column(db.String(64))
+
+
+class Vaccines(db.Model):
+    vaccine_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    vaccine_name = db.Column(db.String(64))
+
+
+class Diseases(db.Model):
+    disease_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    disease_name = db.Column(db.String(64))
+
+
+class Vaccination(db.Model):
+    card_id = db.Column(db.Integer, db.ForeignKey('medical_cards.card_id'), primary_key=True)
+    vaccine_id = db.Column(db.Integer, db.ForeignKey('vaccines.vaccine_id'), primary_key=True)
+    date = db.Column(db.Date)
+
+    card = db.relationship(MedicalCards, foreign_keys=[card_id])
+    vaccine = db.relationship(Vaccines, foreign_keys=[vaccine_id])
+
+
+class Illness(db.Model):
+    card_id = db.Column(db.Integer, db.ForeignKey('medical_cards.card_id'), primary_key=True)
+    disease_id = db.Column(db.Integer, db.ForeignKey('diseases.disease_id'), primary_key=True)
+    start = db.Column(db.Date)
+    end = db.Column(db.Date)
+
+    card = db.relationship(MedicalCards, foreign_keys=[card_id])
+    disease = db.relationship(Diseases, foreign_keys=[disease_id])

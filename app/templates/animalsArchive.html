@@ -7,7 +7,7 @@
             <tr>
                 <th>Staff name:</th>
                 <th>Category name:</th>
-                <th>Type name:</th>
+                <th>Animal name:</th>
                 <th>Responsibility start:</th>
                 <th>Responsibility end:</th>
             </tr>
@@ -15,7 +15,7 @@
             <tr>
                 <td>{{ r.staff.first_name + ' ' + r.staff.second_name }}</td>
                 <td>{{ r.category.category_name }}</td>
-                <td>{{ r.type.type_name }}</td>
+                <td>{{ r.animal.animal_name }}</td>
                 <td>{{ r.start }}</td>
                 <td>{{ r.end }}</td>
                 {% endfor %}
@@ -25,9 +25,9 @@
     <form action="" method="post">
         {{ form.hidden_tag() }}
         <p>
-            {{ form.type.label}}<br>
-            {{ form.type(class_="js-example-basic-single", style = "width : 100px") }}
-            {% for error in form.type.errors %}
+            {{ form.animal.label}}<br>
+            {{ form.animal(class_="js-example-basic-single", style = "width : 100px") }}
+            {% for error in form.animal.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import render_template, redirect, flash, url_for, request
-from app import app, db
+from app import app
 from app.forms import *
 from app.models import *
 from flask_login import current_user, login_user, logout_user, login_required
@@ -72,7 +72,7 @@ def show_staff():
 @login_required
 def update_staff_categories():
     new_categories = request.form.getlist('categories[]')
-    StaffCategoryLink.query.filter(StaffCategoryLink.staff_id == request.form['staff_id']).delete()
+    StaffCategoryLink.query.filter(StaffCategoryLink.staff_id == int(request.form['staff_id'])).delete()
     for c in new_categories:
         link = StaffCategoryLink(staff_id=request.form['staff_id'], category_id=c)
         db.session.add(link)
@@ -88,14 +88,14 @@ def update_responsible_staff():
     for s in new_staff:
         split = s.split('_')
         parsed.append((int(split[0]), int(int(split[1]))))
-    StaffAnimalLink.query.filter(StaffAnimalLink.animal_id == request.form['animal_id']). \
+    StaffAnimalLink.query.filter(StaffAnimalLink.animal_id == int(request.form['animal_id'])). \
         filter(or_(~StaffAnimalLink.staff_id.in_([p[0] for p in parsed]),
                    ~StaffAnimalLink.category_id.in_([p[1] for p in parsed]))).delete(synchronize_session='fetch')
     for p in parsed:
-        if not StaffAnimalLink.query.filter(StaffAnimalLink.animal_id == request.form['animal_id']). \
+        if not StaffAnimalLink.query.filter(StaffAnimalLink.animal_id == int(request.form['animal_id'])). \
                 filter(StaffAnimalLink.staff_id == p[0]). \
                 filter(StaffAnimalLink.category_id == p[1]).first():
-            link = StaffAnimalLink(animal_id=request.form['animal_id'], staff_id=p[0],
+            link = StaffAnimalLink(animal_id=int(request.form['animal_id']), staff_id=p[0],
                                    category_id=p[1], start=datetime.datetime.now())
             db.session.add(link)
     db.session.commit()
@@ -110,14 +110,14 @@ def update_type_responsible_staff():
     for s in new_staff:
         split = s.split('_')
         parsed.append((int(split[0]), int(int(split[1]))))
-    StaffAnimalTypeLink.query.filter(StaffAnimalTypeLink.type_id == request.form['type_id']). \
+    StaffAnimalTypeLink.query.filter(StaffAnimalTypeLink.type_id == int(request.form['type_id'])). \
         filter(or_(~StaffAnimalTypeLink.staff_id.in_([p[0] for p in parsed]),
                    ~StaffAnimalTypeLink.category_id.in_([p[1] for p in parsed]))).delete(synchronize_session='fetch')
     for p in parsed:
-        if not StaffAnimalTypeLink.query.filter(StaffAnimalTypeLink.type_id == request.form['type_id']). \
+        if not StaffAnimalTypeLink.query.filter(StaffAnimalTypeLink.type_id == int(request.form['type_id'])). \
                 filter(StaffAnimalTypeLink.staff_id == p[0]). \
                 filter(StaffAnimalTypeLink.category_id == p[1]).first():
-            link = StaffAnimalTypeLink(type_id=request.form['type_id'], staff_id=p[0],
+            link = StaffAnimalTypeLink(type_id=int(request.form['type_id']), staff_id=p[0],
                                        category_id=p[1], start=datetime.datetime.now())
             db.session.add(link)
     db.session.commit()
@@ -136,6 +136,15 @@ def categories():
         return redirect(url_for('categories'))
     categories = Category.query.all()
     return render_template('categories.html', categories=categories, title='Categories', form=form)
+
+
+@app.route('/delete_category', methods=['POST'])
+@login_required
+def delete_category():
+    category_id = int(request.form['id'])
+    Category.query.filter(Category.category_id == category_id).delete()
+    db.session.commit()
+    return 'Ok'
 
 
 @app.route('/animal_types', methods=['GET', 'POST'])
@@ -181,8 +190,12 @@ def new_animal():
         med_card = MedicalCards(age=form.age.data, height=form.height.data,
                                 weight=form.weight.data, gender=form.gender.data)
         trans_card = TransferCards(arrival_date=form.arrival_date.data, arrival_reason=form.arrival_reason.data)
-        animal = Animals(animal_name=form.name.data, animal_type=form.type.data, medical_card=med_card.card_id,
-                         transfer_card=trans_card.card_id)
+        db.session.add(med_card)
+        db.session.add(trans_card)
+        db.session.commit()
+        animal = Animals(animal_name=form.name.data, animal_type=form.type.data,
+                         medical_card=MedicalCards.query.order_by(MedicalCards.card_id.desc()).first().card_id,
+                         transfer_card=TransferCards.query.order_by(TransferCards.card_id.desc()).first().card_id)
         db.session.add(animal)
         db.session.commit()
         flash('New animal added')
@@ -193,7 +206,27 @@ def new_animal():
 @app.route('/show_animals', methods=['GET', 'POST'])
 @login_required
 def show_animals():
-    animals = Animals.query.join(AnimalTypes).all()
+    form = SelectAnimalsForm()
+    form.types.choices = [(t.type_id, t.type_name) for t in AnimalTypes.query.all()]
+    query = Animals.query.join(AnimalTypes).join(MedicalCards)
+    if form.validate_on_submit():
+        types = form.types.data
+        if types is not None:
+            query = query.filter(AnimalTypes.type_id.in_(types))
+        gender_data = form.gender.data
+        if gender_data is not None and gender_data != 'None':
+            query = query.filter(MedicalCards.gender == gender_data)
+        age = form.age.data
+        if age is not None:
+            query = query.filter(MedicalCards.age >= age)
+        height = form.height.data
+        if height is not None:
+            query = query.filter(MedicalCards.height >= height)
+        weight = form.weight.data
+        if weight is not None:
+            query = query.filter(MedicalCards.weight >= weight)
+    animals = query.all()
+
     staff = StaffCategoryLink.query.join(Staff).join(Category).all()
     staff_choose_forms = {}
     allowed_categories = {'Vet', 'Cleaner', 'Trainer'}
@@ -205,7 +238,7 @@ def show_animals():
                                                  for s in staff if s.category.category_name in allowed_categories]
         choose_form.responsible_staff.process_data(str(s.staff_id) + '_' + str(s.category_id) for s in selected_staff)
         staff_choose_forms[a.animal_id] = choose_form
-    return render_template('showAnimals.html', title='Show animals', animals=animals, choose_forms=staff_choose_forms)
+    return render_template('showAnimals.html', title='Show animals', form=form, animals=animals, choose_forms=staff_choose_forms)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -232,7 +265,91 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route('/show_types_archive')
+@app.route('/show_types_archive', methods=['GET', 'POST'])
+@login_required
 def show_types_archive():
-    r = StaffAnimalTypeLinkArchive.query.join(Staff).join(Category).join(AnimalTypes).all()
-    return render_template('typesArchive.html', title='Archive', result=r)
+    form = TypesArchiveQueryForm()
+    form.type.choices = [(t.type_id, t.type_name) for t in AnimalTypes.query.all()]
+    form.type.choices.append((-1, 'None'))
+    query = StaffAnimalTypeLinkArchive.query.join(Staff).join(Category).join(AnimalTypes)
+    if form.validate_on_submit():
+        type = form.type.data
+        if type is not None and type != -1:
+            query = query.filter(AnimalTypes.type_id == type)
+        start = form.start.data
+        if start is not None:
+            query = query.filter(StaffAnimalTypeLinkArchive.start >= start)
+        end = form.end.data
+        if end is not None:
+            query = query.filter(StaffAnimalTypeLinkArchive.end <= end)
+    res = query.all()
+    for r in res:
+        r.start = r.start.replace(microsecond=0)
+        r.end = r.end.replace(microsecond=0)
+    return render_template('typesArchive.html', form=form, title='Archive', result=res)
+
+
+@app.route('/show_animals_archive', methods=['GET', 'POST'])
+@login_required
+def show_animals_archive():
+    form = AnimalsArchiveQueryForm()
+    form.animal.choices = [(a.animal_id, a.animal_name) for a in Animals.query.all()]
+    form.animal.choices.append((-1, 'None'))
+    query = StaffAnimalLinkArchive.query.join(Staff).join(Category).join(Animals)
+    if form.validate_on_submit():
+        animal = form.animal.data
+        if animal is not None and animal != -1:
+            query = query.filter(Animals.animal_id == animal)
+        start = form.start.data
+        if start is not None:
+            query = query.filter(StaffAnimalLinkArchive.start >= start)
+        end = form.end.data
+        if end is not None:
+            query = query.filter(StaffAnimalLinkArchive.end <= end)
+    res = query.all()
+    for r in res:
+        r.start = r.start.replace(microsecond=0)
+        r.end = r.end.replace(microsecond=0)
+    return render_template('animalsArchive.html', form=form, title='Archive', result=res)
+
+
+@app.route('/medical_card/<animal_id>', methods=['GET', 'POST'])
+@login_required
+def medical_card(animal_id):
+    medical_card_form = MedicalCardForm(prefix='card')
+    animal = Animals.query.filter(Animals.animal_id == animal_id).join(MedicalCards).first()
+    if medical_card_form.validate_on_submit():
+        age = medical_card_form.age.data
+        if age is not None:
+            animal.mcard.age = age
+        height = medical_card_form.height.data
+        if height is not None:
+            animal.mcard.height = height
+        weight = medical_card_form.weight.data
+        if weight is not None:
+            animal.mcard.weight = weight
+        db.session.commit()
+
+    vaccine_form = NewVaccineForm(prefix='vaccine')
+    vaccines = Vaccines.query.all()
+    used_vaccines = Vaccination.query.filter(Vaccination.card_id == animal.mcard.card_id).join(Vaccines).all()
+    vaccine_form.vaccine.choices = [(v.vaccine_id, v.vaccine_name) for v in vaccines
+                                    if v.vaccine_id not in [u.vaccine_id for u in used_vaccines]]
+    if vaccine_form.validate_on_submit():
+        vac = Vaccination(vaccine_id=vaccine_form.vaccine.data, card_id=animal.mcard.card_id,
+                          date=vaccine_form.date.data)
+        db.session.add(vac)
+        db.session.commit()
+
+    disease_form = NewDiseaseForm(prefix='disease')
+    prev_diseases = Illness.query.filter(Illness.card_id == animal.mcard.card_id).join(Diseases).all()
+    diseases = Diseases.query.all()
+    disease_form.disease.choices = [(d.disease_id, d.disease_name) for d in diseases]
+    if disease_form.validate_on_submit():
+        ill = Illness(disease_id=disease_form.disease.data, card_id=animal.mcard.card_id,
+                      start=disease_form.start.data, end=disease_form.end.data)
+        db.session.add(ill)
+        db.session.commit()
+    return render_template('medicalCard.html', animal=animal, medical_card_form=medical_card_form,
+                           vaccines=used_vaccines, vaccine_form=vaccine_form,
+                           diseases=prev_diseases, disease_form=disease_form)

@@ -2,6 +2,7 @@
 
 {% block content %}
     <h1>Show Animals:</h1>
+    <a href="{{ url_for('show_animals_archive') }}">Responsibility archives</a>
     {% if animals %}
         <table>
             <tr>
@@ -30,9 +31,50 @@
                         </p>
                     </form>
                 </td>
+                <td><a href="/medical_card/{{a.animal_id}}">Medical card</a></td>
                 {% endif %}
             </tr>
             {% endfor %}
         </table>
     {% endif %}
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.types.label }}<br>
+            {{ form.types(style="width:200px",
+                                class_="js-example-basic-multiple") }}
+            {% for error in form.types.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.gender.label}}<br>
+            {{ form.gender(class_="js-example-basic-single", style = "width : 100px") }}
+            {% for error in form.gender.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.age.label }}<br>
+            {{ form.age(size=32) }}
+            {% for error in form.age.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.height.label }}<br>
+            {{ form.height(size=32) }}
+            {% for error in form.height.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.weight.label }}<br>
+            {{ form.weight(size=32) }}
+            {% for error in form.weight.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
 {% endblock %}
