@@ -316,6 +316,7 @@ def show_animals_archive():
 @app.route('/medical_card/<animal_id>', methods=['GET', 'POST'])
 @login_required
 def medical_card(animal_id):
+    animal_id = int(animal_id)
     medical_card_form = MedicalCardForm(prefix='card')
     animal = Animals.query.filter(Animals.animal_id == animal_id).join(MedicalCards).first()
     if medical_card_form.validate_on_submit():
@@ -329,27 +330,30 @@ def medical_card(animal_id):
         if weight is not None:
             animal.mcard.weight = weight
         db.session.commit()
+        return redirect('/medical_card/' + str(animal_id))
 
     vaccine_form = NewVaccineForm(prefix='vaccine')
     vaccines = Vaccines.query.all()
     used_vaccines = Vaccination.query.filter(Vaccination.card_id == animal.mcard.card_id).join(Vaccines).all()
     vaccine_form.vaccine.choices = [(v.vaccine_id, v.vaccine_name) for v in vaccines
                                     if v.vaccine_id not in [u.vaccine_id for u in used_vaccines]]
-    if vaccine_form.validate_on_submit():
+    if vaccine_form.vaccine.data and vaccine_form.validate_on_submit():
         vac = Vaccination(vaccine_id=vaccine_form.vaccine.data, card_id=animal.mcard.card_id,
                           date=vaccine_form.date.data)
         db.session.add(vac)
         db.session.commit()
+        return redirect('/medical_card/' + str(animal_id))
 
     disease_form = NewDiseaseForm(prefix='disease')
     prev_diseases = Illness.query.filter(Illness.card_id == animal.mcard.card_id).join(Diseases).all()
     diseases = Diseases.query.all()
     disease_form.disease.choices = [(d.disease_id, d.disease_name) for d in diseases]
-    if disease_form.validate_on_submit():
+    if disease_form.disease.data and disease_form.validate_on_submit():
         ill = Illness(disease_id=disease_form.disease.data, card_id=animal.mcard.card_id,
                       start=disease_form.start.data, end=disease_form.end.data)
         db.session.add(ill)
         db.session.commit()
+        return redirect('/medical_card/' + str(animal_id))
     return render_template('medicalCard.html', animal=animal, medical_card_form=medical_card_form,
                            vaccines=used_vaccines, vaccine_form=vaccine_form,
                            diseases=prev_diseases, disease_form=disease_form)
