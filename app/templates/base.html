@@ -54,6 +54,7 @@
                 $.post('/delete_category', {
                     id : category_id
                 }).done(function(response) {
+                    location.reload(true)
                 }).fail(function() {
                     alert("error");
                 });

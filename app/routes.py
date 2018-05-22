@@ -143,6 +143,7 @@ def categories():
 def delete_category():
     category_id = int(request.form['id'])
     Category.query.filter(Category.category_id == category_id).delete()
+    StaffCategoryLink.query.filter(StaffCategoryLink.category_id == category_id).delete()
     db.session.commit()
     return 'Ok'
 

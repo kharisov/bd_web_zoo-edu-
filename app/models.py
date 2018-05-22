@@ -41,7 +41,7 @@ class StaffCategoryLink(db.Model):
 class Category(db.Model):
     category_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     category_name = db.Column(db.String(64))
-    staff_link = db.relationship('StaffCategoryLink', backref='category', cascade="delete", lazy='dynamic')
+    staff_link = db.relationship('StaffCategoryLink', backref='category', lazy='dynamic')
     attribute_link = db.relationship('CategoryAttributeLink', backref='attribute', lazy='dynamic')
 
 
